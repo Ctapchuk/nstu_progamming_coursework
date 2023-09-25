@@ -1,5 +1,5 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef MAINWINDOW_HPP
+#define MAINWINDOW_HPP
 
 #include <QMainWindow>
 #include "ui_mainwindow.h"
@@ -32,4 +32,4 @@ private:
     void UpdateItems();
     void closeEvent (QCloseEvent *event);
 };
-#endif // MAINWINDOW_H
+#endif // MAINWINDOW_HPP

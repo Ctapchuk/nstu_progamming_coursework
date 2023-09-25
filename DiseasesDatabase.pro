@@ -9,18 +9,22 @@ CONFIG += c++20
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    DatabaseManager.cpp \
+    database_manager.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
-    DatabaseManager.hpp \
+    database_manager.hpp \
     mainwindow.hpp
 
 FORMS += \
     mainwindow.ui
 
 RC_ICONS = icon.ico
+
+qm_files.files = $$[QT_INSTALL_TRANSLATIONS]/
+RESOURCES += \
+    qm_files
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

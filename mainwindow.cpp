@@ -1,5 +1,5 @@
 #include "mainwindow.hpp"
-#include "DatabaseManager.hpp"
+#include "database_manager.hpp"
 #include <QCloseEvent>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -25,9 +25,9 @@ void MainWindow::UpdateItems()
 {
     ui->listWidget->clear();
     ui->textBrowser->clear();
-    for(uint i = 0; auto &Disease: DatabaseManager::DiseasesDatabase) {
+    for(uint i = 0; auto &Disease: DatabaseManager::diseases_database) {
         QListWidgetItem *item = new QListWidgetItem;
-        item->setText(Disease.Name);
+        item->setText(Disease.name);
         item->setData(Qt::UserRole, i++);
         //item->setIcon(QIcon(":/images/new.png"));
         //item->setToolTip("Всплывающая подсказка"); // При наведении
@@ -64,18 +64,18 @@ void MainWindow::on_listWidget_itemClicked(QListWidgetItem *item)
 {
     ui->pushButton_edit->setDisabled(0);
     ui->pushButton_delete->setDisabled(0);
-    uint i = item->data(Qt::UserRole).toUInt();
-    QString text = "<b>Симптомы:</b><br>" + DatabaseManager::DiseasesDatabase[i].Symptoms + "<br>" \
-                    + "<b>Последствия и исход:</b><br>" + DatabaseManager::DiseasesDatabase[i].Consequences + "<br>" \
-                    + "<b>Рекомендуемые препараты:</b><br>" + DatabaseManager::DiseasesDatabase[i].RecMedicines + "<br>" \
-                    + "<b>Рекомендуемые процедуры:</b><br>" + DatabaseManager::DiseasesDatabase[i].RecProcedures + "<br>";
+    auto i = DatabaseManager::diseases_database[item->data(Qt::UserRole).toUInt()];
+    QString text = "<b>Симптомы:</b><br>" + i.symptoms + "<br>" \
+                    + "<b>Последствия и исход:</b><br>" + i.consequences + "<br>" \
+                    + "<b>Рекомендуемые препараты:</b><br>" + i.medicines + "<br>" \
+                    + "<b>Рекомендуемые процедуры:</b><br>" + i.procedures + "<br>";
     ui->textBrowser->setText(text);
 }
 
 void MainWindow::on_pushButton_add_clicked()
 {
     QDialog dlg(this); // Инициализация диалога
-    dlg.setWindowTitle(tr("Добавить болезнь")); // Имя диалога в заголовке
+    dlg.setWindowTitle("Добавить болезнь"); // Имя диалога в заголовке
 
     // Формы ввода текста
     QLineEdit *ledit_name = new QLineEdit(&dlg);
@@ -86,17 +86,17 @@ void MainWindow::on_pushButton_add_clicked()
 
     QDialogButtonBox *buttonBox = new QDialogButtonBox(&dlg);
     buttonBox->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-    buttonBox->button(QDialogButtonBox::Ok)->setText(tr("Добавить"));
+    buttonBox->button(QDialogButtonBox::Ok)->setText("Добавить");
 
     connect(buttonBox, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
 
     QFormLayout *layout = new QFormLayout();
-    layout->addRow(tr("Имя болезни:"), ledit_name);
-    layout->addRow(tr("Симптомы:"), ledit_symptoms);
-    layout->addRow(tr("Последствия и исход:"), ledit_consequences);
-    layout->addRow(tr("Рекомендуемые препараты:"), ledit_recMedicines);
-    layout->addRow(tr("Рекомендуемые процедуры:"), ledit_recProcedures);
+    layout->addRow("Имя болезни:", ledit_name);
+    layout->addRow("Симптомы:", ledit_symptoms);
+    layout->addRow("Последствия и исход:", ledit_consequences);
+    layout->addRow("Рекомендуемые препараты:", ledit_recMedicines);
+    layout->addRow("Рекомендуемые процедуры:", ledit_recProcedures);
     layout->addWidget(buttonBox);
 
     dlg.setLayout(layout);
@@ -108,18 +108,18 @@ again:
             goto again;
         }
         struct DiseaseInfo dis;
-        dis.Name = ledit_name->text();
-        dis.Symptoms = ledit_symptoms->text();
-        dis.Consequences = ledit_consequences->text();
-        dis.RecMedicines = ledit_recMedicines->text();
-        dis.RecProcedures = ledit_recProcedures->text();
-        DatabaseManager::DiseasesDatabase.push_back(dis);
+        dis.name = ledit_name->text();
+        dis.symptoms = ledit_symptoms->text();
+        dis.consequences = ledit_consequences->text();
+        dis.medicines = ledit_recMedicines->text();
+        dis.procedures = ledit_recProcedures->text();
+        DatabaseManager::diseases_database.push_back(dis);
         DatabaseManager::Is_DatabaseChanged = true;
 
         // Добавление нового элемента в listWidget напрямую без повторной обработки DiseasesDirectory
         QListWidgetItem *item = new QListWidgetItem;
-        item->setText(dis.Name);
-        item->setData(Qt::UserRole, DatabaseManager::DiseasesDatabase.size() - 1);
+        item->setText(dis.name);
+        item->setData(Qt::UserRole, DatabaseManager::diseases_database.size() - 1);
         ui->listWidget->addItem(item);
         ui->listWidget->sortItems(Qt::AscendingOrder);
         ui->pushButton_edit->setDisabled(1);
@@ -132,7 +132,7 @@ void MainWindow::on_pushButton_delete_clicked()
 {
     if (ui->listWidget->count() != 0) {
         struct DiseaseInfo dis_null;
-        DatabaseManager::DiseasesDatabase[ui->listWidget->currentItem()->data(Qt::UserRole).toUInt()] = dis_null;
+        DatabaseManager::diseases_database[ui->listWidget->currentItem()->data(Qt::UserRole).toUInt()] = dis_null;
         DatabaseManager::Is_DatabaseChanged = true;
         delete ui->listWidget->takeItem(ui->listWidget->row(ui->listWidget->currentItem()));
         ui->textBrowser->clear();
@@ -147,7 +147,7 @@ void MainWindow::on_pushButton_delete_clicked()
 void MainWindow::on_pushButton_edit_clicked()
 {
     QDialog dlg(this); // Инициализация диалога
-    dlg.setWindowTitle(tr("Изменить болезнь")); // Имя диалога в заголовке
+    dlg.setWindowTitle("Изменить болезнь"); // Имя диалога в заголовке
 
     // Формы ввода текста
     QLineEdit *ledit_name = new QLineEdit(&dlg);
@@ -156,11 +156,12 @@ void MainWindow::on_pushButton_edit_clicked()
     QLineEdit *ledit_recMedicines = new QLineEdit(&dlg);
     QLineEdit *ledit_recProcedures = new QLineEdit(&dlg);
 
-    ledit_name->setText(DatabaseManager::DiseasesDatabase[ui->listWidget->currentItem()->data(Qt::UserRole).toUInt()].Name);
-    ledit_symptoms->setText(DatabaseManager::DiseasesDatabase[ui->listWidget->currentItem()->data(Qt::UserRole).toUInt()].Symptoms);
-    ledit_consequences->setText(DatabaseManager::DiseasesDatabase[ui->listWidget->currentItem()->data(Qt::UserRole).toUInt()].Consequences);
-    ledit_recMedicines->setText(DatabaseManager::DiseasesDatabase[ui->listWidget->currentItem()->data(Qt::UserRole).toUInt()].RecMedicines);
-    ledit_recProcedures->setText(DatabaseManager::DiseasesDatabase[ui->listWidget->currentItem()->data(Qt::UserRole).toUInt()].RecProcedures);
+    auto s = DatabaseManager::diseases_database[ui->listWidget->currentItem()->data(Qt::UserRole).toUInt()];
+    ledit_name->setText(s.name);
+    ledit_symptoms->setText(s.symptoms);
+    ledit_consequences->setText(s.consequences);
+    ledit_recMedicines->setText(s.medicines);
+    ledit_recProcedures->setText(s.procedures);
 
     QDialogButtonBox *buttonBox = new QDialogButtonBox(&dlg);
     buttonBox->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
@@ -169,11 +170,11 @@ void MainWindow::on_pushButton_edit_clicked()
     connect(buttonBox, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
 
     QFormLayout *layout = new QFormLayout();
-    layout->addRow(tr("Имя болезни:"), ledit_name);
-    layout->addRow(tr("Симптомы:"), ledit_symptoms);
-    layout->addRow(tr("Последствия и исход:"), ledit_consequences);
-    layout->addRow(tr("Рекомендуемые препараты:"), ledit_recMedicines);
-    layout->addRow(tr("Рекомендуемые процедуры:"), ledit_recProcedures);
+    layout->addRow("Имя болезни:", ledit_name);
+    layout->addRow("Симптомы:", ledit_symptoms);
+    layout->addRow("Последствия и исход:", ledit_consequences);
+    layout->addRow("Рекомендуемые препараты:", ledit_recMedicines);
+    layout->addRow("Рекомендуемые процедуры:", ledit_recProcedures);
     layout->addWidget(buttonBox);
 
     dlg.setLayout(layout);
@@ -185,16 +186,16 @@ again:
             goto again;
         }
         struct DiseaseInfo dis;
-        dis.Name = ledit_name->text();
-        dis.Symptoms = ledit_symptoms->text();
-        dis.Consequences = ledit_consequences->text();
-        dis.RecMedicines = ledit_recMedicines->text();
-        dis.RecProcedures = ledit_recProcedures->text();
-        DatabaseManager::DiseasesDatabase[ui->listWidget->currentItem()->data(Qt::UserRole).toUInt()] = dis;
+        dis.name = ledit_name->text();
+        dis.symptoms = ledit_symptoms->text();
+        dis.consequences = ledit_consequences->text();
+        dis.medicines = ledit_recMedicines->text();
+        dis.procedures = ledit_recProcedures->text();
+        DatabaseManager::diseases_database[ui->listWidget->currentItem()->data(Qt::UserRole).toUInt()] = dis;
         DatabaseManager::Is_DatabaseChanged = true;
 
         // Добавление нового элемента в listWidget напрямую без повторной обработки DiseasesDirectory
-        ui->listWidget->currentItem()->setText(dis.Name);
+        ui->listWidget->currentItem()->setText(dis.name);
         ui->listWidget->sortItems(Qt::AscendingOrder);
         ui->textBrowser->clear();
         ui->pushButton_save->setDisabled(0);

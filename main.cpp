@@ -10,12 +10,11 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     // Загрузка Qt локализации
-    QTranslator qtBaseTranslator;
-    if (qtBaseTranslator.load("qt_" + QLocale::system().name(),
-                              QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
+    QTranslator Translator;
+    if (Translator.load(":/qt_" + QLocale::system().name()))
     {
-        qDebug() << "qtBaseTranslator ok";
-        a.installTranslator(&qtBaseTranslator);
+        qDebug() << "Локализация загружена!";
+        a.installTranslator(&Translator);
     }
 
     // Инициализация интерфейса
